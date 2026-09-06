@@ -1,0 +1,30 @@
+Working with text data
+
+LLMs are neural networks and cant work with text directly. They can only work with continuous numerical variables.
+
+To convert text to numerical values, several steps are done:
+- tokenization (split into tokens then token IDs)
+- conversion to token embeddings
+- computation of positional embeddings and sum with token embeddings
+
+Tokenization:
+The split into tokens is done via a vocabulary, with each element of this vocabulary assigned a token ID.
+Simple vocabulary separates words and punctuation symbols but more advanced ones also handle unknown elements and end_of_text element.
+As the space of the unknown elements can be infinite, more advanced tokenization methods like Byte Pair Encoding (BPE) were introduced. BPE uses word statistics to create new potential elements by concatenating letters that are likely to be seen together.
+
+Conversion to token embeddings:
+Embeddings are multi dimensional and are a projection of the token ID in a space where similariy between tokens can be identified. For example 2 tokens that are semantically close will be close in the embedding space.
+Embeddings are obtained by multiplying a one-hot encoded representation of the token ID by a matrix learnable by back-prop.
+Note outside ch02: Embeddings are never converted back to Token IDs. LLMs can be seen as classifiers.
+The output contains a softmax to help during the training (used by cross-entropy loss).
+During infernce, the probabilities that this layer outputs can go to an argmax layer that will point to a token in the vocabulary. 
+Other alternatives are possible like sampling from the softmax distribution with a temperature parameter.
+
+Computation of positional embeddings:
+Computing embeddings for each token is not sufficient as 1 token can appear several times in a sentence and the model has no way to know which token is where in the sequence.
+To compensate that, an embedding encoding the position in a sequence is computed and added to the token embeddings.
+The sequence of token+position embeddings is what will be processed by LLM
+Note outside ch02: the attention operation is permutation invariant so a sequence with the same words in different orders would give the same representation.
+
+Preparation of training data and sliding window.
+LLMs are trained to predict the next word based on an input sequence. To train a model, the dataset is prepared by collecting pairs of token sequence + same token sequence shifted by 1. The first pair starts at the first token and next pairs are determined by using a sliding window constrained by its length and stride.
