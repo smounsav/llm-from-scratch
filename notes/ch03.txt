@@ -1,0 +1,22 @@
+(1) attention simplifiée/produits scalaires
+Attention is a technique to know, when processing an element of a sequence, on which other elements of the sequence to focus.
+A simple attention could be the dot product of a token embedding with the embedding of another token, to measure their similarity.
+By repeating that to all the tokens of a sequence, we obtain the attention weights for a specific token. By repeating that to all tokens and stacking the results, we obtain the attention weights matrix. This matrix can be computed with a for loop by repeating the attention calculation for each token or by using a single matrix multiplication.
+Multiplying the input embeddings by the attention weights yields the context vectors, which are a representation of the input tokens containing information about the rest of the sequence.
+
+(2) Q/K/V et pourquoi trois projections apprises
+The similarity attention is very simple and has some drawbacks: it is fixed and only based on the similarity between the tokens. It can't build finer relations.
+The QKV model (Query Key Value) was introduced to address that. It is inspired by the retrieval model based on key values from the database world.
+This model allows the learning of much finer relations between tokens. As it is learned and not fixed, it allows the discovery of different relations between tokens instead of being stuck to a fixed relation model.
+Query is what tokens are searching. Key is what tokens are offering or how they want to be found and value is what is transmitted.
+
+QKV are 3 spaces where tokens are projected, they are represented by 3 matrices.
+
+(3) √d_k et la justification par la variance
+sqrt(d_k) is necessary when computing the query/key scores by multiplying the query projections by the key projections transposed. qk is sum of d_k products qi*ki. Each qi and ki are supposed to be iid with mean 0 and variance 1 so their sum has variance d_k and typical value sqrt(d_k). Dividing this sum in the softmax by sqrt(d_k) when normalizing the attention scores allows to bring back the variance of the sum to 1. This normalization is particularly important when d_k becomes big. Without this, softmax could lead to a dominant value and ignore all the values close to 0, which would bring the softmax function actually closer to a step function.
+
+(4) masquage causal + multi-têtes avec les shapes
+Causal mask consists in hiding values in a sequence, so that a model can rely only on the previous tokens to make a prediction. This is done to avoid label leakage and transforming the problem from predicting the next token to filling the gaps. This is usually done by replacing all the values above the diagonal in the attention score matrix by -inf, so that it is transformed to 0 in the softmax during normalization.
+
+Multi head attention consists in stacking several causal attention heads in a model, either horizontally (several heads running in parallel) or vertically (several attention layers stacked, like in GPT based models). This allows learning several and more complex relations between tokens instead of just one.
+To make the computation of multi attention efficient, bigger matrices are used to project embedding into Q, K and V instead of computing projections per head sequentially. The projections are then split per head to compute the different scores and finally the results are concatenated.
