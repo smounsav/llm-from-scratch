@@ -1,0 +1,9 @@
+Fine tuning a LLM to do classification is very similar to what is done in the computer vision world.
+
+Basically, we use a pretrained model: this model was trained on a corpus to predict the next token.
+We just modify the model to fulfill a task. For example for classification, we just remove the last layer (that was actually a classification layer but on the whole vocab)
+ and replace it with a new layer with a number of outputs corresponding to the number of classes of the new problem. 
+The classification is done on the hidden state (output) of the last token, because of the masked attention mechanism. The last token is the only one that had access to all the others. This is the only difference with vision where we do the classification on a global pool.
+Then we fine tune a few last layers. Usually we fine tune only the new last layer.
+However, Raschka found out empirically that it was better in our particular case to fine tune the last 3 functional blocks: the final classification linear layer, the last Transformer block and the last Layer Norm layer.
+For fine tuning we use the cross entropy loss for a few epochs with a small learning rate.
